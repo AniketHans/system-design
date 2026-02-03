@@ -1,0 +1,16 @@
+{
+  "name": "load-balancer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start:lb": "node ./load-balancer-service/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1",
+    "redis": "^5.10.0"
+  },
+  "type": "module"
+}

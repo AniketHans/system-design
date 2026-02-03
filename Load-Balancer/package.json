@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start:lb": "node ./load-balancer-service/app.js"
+    "start:lb": "node ./load-balancer-service/app.js",
+    "up:s11": "node ./test-services/service1-1.js",
+    "up:s12": "node ./test-services/service1-2.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.13.4",
     "express": "^5.2.1",
     "redis": "^5.10.0"
   },

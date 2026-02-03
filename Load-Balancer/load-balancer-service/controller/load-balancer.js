@@ -1,32 +1,10 @@
+import axios from "axios";
 import { createClient } from "redis";
 import { SERVICES_KEY } from "../constant.js";
 
 const client = createClient();
 client.on("error", (err) => console.log("Unable to connect to redis", err));
-
-export async function RegisterService(req, res) {
-  try {
-    const currTime = Date.now();
-    const { serviceName, serviceURL } = req.body;
-    // here we are using redis but you can use persistent storage as well
-    await client.connect();
-    await client.INCR(`${SERVICES_KEY}:${serviceName}:total_servers`);
-    await client.zAdd(`${SERVICES_KEY}:${serviceName}:servers`, {
-      score: currTime,
-      value: serviceURL,
-    });
-    await client.quit();
-    res
-      .status(200)
-      .json({ message: `New Server registered for ${serviceName}` });
-  } catch (err) {
-    console.error(err);
-    await client.quit();
-    res
-      .status(500)
-      .json({ message: "Internal Server Error while registering the service" });
-  }
-}
+await client.connect();
 
 export async function LoadBalancer(req, res) {
   try {
@@ -35,7 +13,6 @@ export async function LoadBalancer(req, res) {
     const { serviceName } = req.params;
 
     // getting the available servers
-    await client.connect();
     const totalServers = await client.get(
       `${SERVICES_KEY}:${serviceName}:total_servers`,
     );
@@ -57,12 +34,31 @@ export async function LoadBalancer(req, res) {
       serverNumber,
       serverNumber,
     );
-    await client.quit();
-    res
-      .status(200)
-      .json({ message: `Request will be forwarded to server ${serverUrl}` });
+
+    // forwarding the request using axios
+    const targetUrl =
+      serverUrl + req.originalUrl.replace(`/load-balance/${serviceName}`, "");
+
+    console.log("***", targetUrl);
+
+    const axiosConfig = {
+      method: req.method, // Use the original request method (GET, POST, etc.)
+      url: targetUrl,
+      headers: { ...req.headers, host: new URL(targetUrl).host }, // Forward original headers and set the correct host
+      data: req.body, // Forward the original request body (for POST, PUT, PATCH)
+      responseType: "stream", // Crucial for handling responses as streams
+    };
+
+    const axiosResponse = await axios(axiosConfig);
+    // await client.quit();
+    // res.status(axiosResponse.status).send(axiosResponse.data);
+    axiosResponse.data.pipe(res);
+
+    // res
+    //   .status(200)
+    //   .json({ message: `Request will be forwarded to server ${serverUrl}` });
   } catch (err) {
-    await client.quit();
+    // await client.quit();
     console.error(err);
     res.status(500).json({ message: err });
   }

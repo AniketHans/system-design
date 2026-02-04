@@ -108,13 +108,13 @@ What to do when interviewer asks you, "Design XYZ system"?
       1. Store the contigous events in Db (cassandra) and then use a cron job to trigger Spark (data processing) to fetch the data periodically and process it and store it to some OLAP db like snowflake.
       2. Use kafka and flick to process the data and store it in OLAP db like snowflake
 10. Realtime data processing/dashboards:
-11. If you have a lot of data comming regarding multiple entities in your system and you want to perform some kind of data enrichment, processing, aggregation, filtering, grouping, joining etc on the data in real time for particular entities, in this case go with Kafka streams or kinesis (event streams). These support these kind on operations on continous stream of data thus very suitable for building real time dashboards with granularilty of say seconds to minutes to hours etc. Kafka streams perform the aggregation, filtering etc on the data and put it back to the message queue to be consumed by consumer
-12. If you want you can combine message queues with external stream processing frameworks like Apache flink. Kafka streams can be used if you are already using kafka message queue in the system otherwise you can go with message queue + stream processing(like flink) setup as well
-    > Hence, for real time data processing, for say dashboards, aggregator queries etc, go with message queues(for handling the flow of events) + stream processing frameworks (to perform the aggregation, filtering, joining etc operations on the events) and store the processed result in some read heavy database so the results can be consumed by dashboards to show the real time data
-13. Celebrity problem:
+    1. If you have a lot of data comming regarding multiple entities in your system and you want to perform some kind of data enrichment, processing, aggregation, filtering, grouping, joining etc on the data in real time for particular entities, in this case go with Kafka streams or kinesis (event streams). These support these kind on operations on continous stream of data thus very suitable for building real time dashboards with granularilty of say seconds to minutes to hours etc. Kafka streams perform the aggregation, filtering etc on the data and put it back to the message queue to be consumed by consumer
+    2. If you want you can combine message queues with external stream processing frameworks like Apache flink. Kafka streams can be used if you are already using kafka message queue in the system otherwise you can go with message queue + stream processing(like flink) setup as well
+       > Hence, for real time data processing, for say dashboards, aggregator queries etc, go with message queues(for handling the flow of events) + stream processing frameworks (to perform the aggregation, filtering, joining etc operations on the events) and store the processed result in some read heavy database so the results can be consumed by dashboards to show the real time data
+11. Celebrity problem:
     1. It arises when you are writing to database regarding an entity, with some entity_id, and that entity has a lot of writes regarding it. This results in overwhelming the DB with writes.
     2. Even if you shard the db based on entity_ids still you can have a hot shard due to lot of writes comming to it.
     3. To prevent this, you can add random numbers to the entity_id (entity_id:0-N) and that will result in writing the data for entity on multiple shards. This way we can lower the load on a particular database/shard.
     4. But this will involve reading data from multiple shards to get the actual data regarding a particular entity
     5. Same can be done to distribute traffic in kafka partitions to save us from hot kafka partitions.
-14.
+12.

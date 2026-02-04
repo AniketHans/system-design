@@ -94,3 +94,27 @@ What to do when interviewer asks you, "Design XYZ system"?
       1. Caches are fast and easy to access (easy in implementing and code integration) but are volatile. A restart will delete all the data. Caches are tried to be kept near the users locations
       2. Databases are bit slower and slightly difficult to implement as compared to caches (in development, we need to take care of transactions, ORM etc) but store data permanently. Databases can be separated apart from the users
    2. If there is some data which will be used in multiple flows of you system and loss of which will hamper the flows in system, try to keep it in persistent stores
+2. When the ids for a DB table are fixed, suppose we have available ids for a URL shortner in the range `00000000 -> zzzzzzzz`. Then we can prepopulate the DB with nil entries and the possible ids. We can add data for a particular table id in future. This approach will help us in perform range partitioning in advance and also acquire locks for a row during a transaction more easily.
+3. When we have multiple DBs having partitioned data and we want to store new data in one of the servers, so instead of manually routing to one of the servers, we can use managed services like CITUS. Citus has info about all the DB shards. It can help us in rebalancing the partitions and also, in case of accessing an record based on id, it redirects us to the correct server. Citus is a sharding extension to Postgres
+4. For large immutable files with size >= 100KB, upload them directly to S3. Dont use server as the middleware/proxy
+5. For retrieving static files, use CDNs. If the file is not present at CDN, it will act a proxy and bring the file for you.
+6. Dont store very large texts in DB, it will increase the disk read time as more disk partitions need to be read to find the required data.
+   1. It is also bad for replication as the process will become slow
+   2. Write to cross zone DB will be expensive as large texts involve a lot of bandwidth to transfer
+7. Opt for some Cron job to remove stale data from your system.
+8. In case of cleanup for S3, use S3 lifecycle rules to cleanup
+9. Data Processing for dashboards:
+   1. You have 2 options:
+      1. Store the contigous events in Db (cassandra) and then use a cron job to trigger Spark (data processing) to fetch the data periodically and process it and store it to some OLAP db like snowflake.
+      2. Use kafka and flick to process the data and store it in OLAP db like snowflake
+10. Realtime data processing/dashboards:
+11. If you have a lot of data comming regarding multiple entities in your system and you want to perform some kind of data enrichment, processing, aggregation, filtering, grouping, joining etc on the data in real time for particular entities, in this case go with Kafka streams or kinesis (event streams). These support these kind on operations on continous stream of data thus very suitable for building real time dashboards with granularilty of say seconds to minutes to hours etc. Kafka streams perform the aggregation, filtering etc on the data and put it back to the message queue to be consumed by consumer
+12. If you want you can combine message queues with external stream processing frameworks like Apache flink. Kafka streams can be used if you are already using kafka message queue in the system otherwise you can go with message queue + stream processing(like flink) setup as well
+    > Hence, for real time data processing, for say dashboards, aggregator queries etc, go with message queues(for handling the flow of events) + stream processing frameworks (to perform the aggregation, filtering, joining etc operations on the events) and store the processed result in some read heavy database so the results can be consumed by dashboards to show the real time data
+13. Celebrity problem:
+    1. It arises when you are writing to database regarding an entity, with some entity_id, and that entity has a lot of writes regarding it. This results in overwhelming the DB with writes.
+    2. Even if you shard the db based on entity_ids still you can have a hot shard due to lot of writes comming to it.
+    3. To prevent this, you can add random numbers to the entity_id (entity_id:0-N) and that will result in writing the data for entity on multiple shards. This way we can lower the load on a particular database/shard.
+    4. But this will involve reading data from multiple shards to get the actual data regarding a particular entity
+    5. Same can be done to distribute traffic in kafka partitions to save us from hot kafka partitions.
+14.

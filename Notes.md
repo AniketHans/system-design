@@ -121,12 +121,17 @@ What to do when interviewer asks you, "Design XYZ system"?
     1. For scenarios where you have lots of many to many relations stored in a table, like we have Likes table with user_id and post_id indicating which user has a post, save your resources from scanning the whole table for counting these relations.
     2. Better go for CDC (change data capture). Publish all the relational events in message queue like kafka and have some consumers consume the events and store the calculated data in a separate no-sql db.
     3. With the help of CDC, you can prevent your self from scanning large tables to compute the desired output
-13. CDC:
+13. Saving data to DB and also sending to Kafka message queue for further processing simultaneously:
+    1. If app service wants to save some data in DB and simulateously send it to Kafka for further processing by consumers, better let CDC do this.
+    2. You just write your changes to database. Database will create a replication log and let the CDC service like Debezium forward the changes to kafka queue.
+    3. This saves us from 2 phase write problem where the application service is writing the same change to multiple places and if it fails at one place, this will result in inconsistencies in data
+    4. If you want to write simultaneously to redis and db, better write to db and in case of cache miss, fetch data from the db and hydrate the cache
+14. CDC:
     1. It can be done by using services like Debezium
     2. Debezium can look into the replication logs of a DB and add them to kafka queue
-14. Fan out:
+15. Fan out:
     1. When you have to put single data on multiple places, go for fan out arch.
     2. Like we are doing in news feed generation, single post_id need to go to feed of multiple users. Thus instead of fetching post_ids from multiple users multipple times and then sorting the posts by ids, its better to append each post to all the users by fanning out.
-15. Use of NoSQL databases:
+16. Use of NoSQL databases:
     1. Whenever you are thinking of using Redis because of storing data in say key-value format but the data is huge in size and important for further steps, better save it in No-Sql database like MongoDB like key value pair.
     2. These No-sql databases are persistent and can be a source for feeding data to the redis for fast retrievals

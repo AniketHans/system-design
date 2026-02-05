@@ -108,7 +108,7 @@ What to do when interviewer asks you, "Design XYZ system"?
       1. Store the contigous events in Db (cassandra) and then use a cron job to trigger Spark (data processing) to fetch the data periodically and process it and store it to some OLAP db like snowflake.
       2. Use kafka and flick to process the data and store it in OLAP db like snowflake
 10. Realtime data processing/dashboards:
-    1. If you have a lot of data comming regarding multiple entities in your system and you want to perform some kind of data enrichment, processing, aggregation, filtering, grouping, joining etc on the data in real time for particular entities, in this case go with Kafka streams or kinesis (event streams). These support these kind on operations on continous stream of data thus very suitable for building real time dashboards with granularilty of say seconds to minutes to hours etc. Kafka streams perform the aggregation, filtering etc on the data and put it back to the message queue to be consumed by consumer
+    1. If you have a lot of data comming regarding multiple entities in your system and you want to perform some kind of data enrichment, processing, aggregation, filtering, grouping, joining etc on the data in real time for particular entities, in this case go with Kafka streams. These support these kind on operations on continous stream of data thus very suitable for building real time dashboards with granularilty of say seconds to minutes to hours etc. Kafka streams perform the aggregation, filtering etc on the data and put it back to the message queue to be consumed by consumer
     2. If you want you can combine message queues with external stream processing frameworks like Apache flink. Kafka streams can be used if you are already using kafka message queue in the system otherwise you can go with message queue + stream processing(like flink) setup as well
        > Hence, for real time data processing, for say dashboards, aggregator queries etc, go with message queues(for handling the flow of events) + stream processing frameworks (to perform the aggregation, filtering, joining etc operations on the events) and store the processed result in some read heavy database so the results can be consumed by dashboards to show the real time data
 11. Celebrity problem:
@@ -117,4 +117,16 @@ What to do when interviewer asks you, "Design XYZ system"?
     3. To prevent this, you can add random numbers to the entity_id (entity_id:0-N) and that will result in writing the data for entity on multiple shards. This way we can lower the load on a particular database/shard.
     4. But this will involve reading data from multiple shards to get the actual data regarding a particular entity
     5. Same can be done to distribute traffic in kafka partitions to save us from hot kafka partitions.
-12.
+12. Scanning the a huge relations database:
+    1. For scenarios where you have lots of many to many relations stored in a table, like we have Likes table with user_id and post_id indicating which user has a post, save your resources from scanning the whole table for counting these relations.
+    2. Better go for CDC (change data capture). Publish all the relational events in message queue like kafka and have some consumers consume the events and store the calculated data in a separate no-sql db.
+    3. With the help of CDC, you can prevent your self from scanning large tables to compute the desired output
+13. CDC:
+    1. It can be done by using services like Debezium
+    2. Debezium can look into the replication logs of a DB and add them to kafka queue
+14. Fan out:
+    1. When you have to put single data on multiple places, go for fan out arch.
+    2. Like we are doing in news feed generation, single post_id need to go to feed of multiple users. Thus instead of fetching post_ids from multiple users multipple times and then sorting the posts by ids, its better to append each post to all the users by fanning out.
+15. Use of NoSQL databases:
+    1. Whenever you are thinking of using Redis because of storing data in say key-value format but the data is huge in size and important for further steps, better save it in No-Sql database like MongoDB like key value pair.
+    2. These No-sql databases are persistent and can be a source for feeding data to the redis for fast retrievals

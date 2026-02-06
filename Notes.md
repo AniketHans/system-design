@@ -135,3 +135,7 @@ What to do when interviewer asks you, "Design XYZ system"?
 16. Use of NoSQL databases:
     1. Whenever you are thinking of using Redis because of storing data in say key-value format but the data is huge in size and important for further steps, better save it in No-Sql database like MongoDB like key value pair.
     2. These No-sql databases are persistent and can be a source for feeding data to the redis for fast retrievals
+17. For scaling websocket connections over multiple servers:
+    1. Use Redis pub/dub to maintain mapping of servers and the user connections they are holding.
+    2. Each server subscribe to the user_id topics they are connected with.
+    3. Whenever a server publishes message regarding a user_id, the corresponding server will pick the message

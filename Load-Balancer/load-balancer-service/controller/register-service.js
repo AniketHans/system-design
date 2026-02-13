@@ -10,11 +10,12 @@ export async function RegisterService(req, res) {
     const { serviceName, serviceURL } = req.body;
     // here we are using redis but you can use persistent storage as well
     await client.connect();
-    await client.INCR(`${SERVICES_KEY}:${serviceName}:total_servers`);
+    // await client.INCR(`${SERVICES_KEY}:${serviceName}:total_servers`);
     await client.zAdd(`${SERVICES_KEY}:${serviceName}:servers`, {
       score: currTime,
       value: serviceURL,
     });
+    await client.sAdd(SERVICES_KEY, serviceName);
     await client.quit();
     res
       .status(200)

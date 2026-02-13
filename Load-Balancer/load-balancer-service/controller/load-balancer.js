@@ -13,9 +13,16 @@ export async function LoadBalancer(req, res) {
     const { serviceName } = req.params;
 
     // getting the available servers
-    const totalServers = await client.get(
-      `${SERVICES_KEY}:${serviceName}:total_servers`,
+    // const totalServers = await client.get(
+    //   `${SERVICES_KEY}:${serviceName}:total_servers`,
+    // );
+    const servers = await client.zRange(
+      `${SERVICES_KEY}:${serviceName}:servers`,
+      0,
+      -1,
     );
+
+    const totalServers = servers.length;
     if (totalServers <= 0) {
       throw new Error(`${serviceName} is fully down`);
     }

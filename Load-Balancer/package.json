@@ -5,13 +5,14 @@
   "scripts": {
     "start:lb": "node ./load-balancer-service/app.js",
     "up:s11": "node ./test-services/service1-1.js",
-    "up:s12": "node ./test-services/service1-2.js"
+    "up:s12": "node ./test-services/service1-2.js",
+    "start:hb": "node ./heart-beat-service/main.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "express": "^5.2.1",
     "redis": "^5.10.0"
   },
